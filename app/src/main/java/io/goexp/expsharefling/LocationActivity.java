@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.scala.exp.android.sdk.Exp;
 import com.scala.exp.android.sdk.channels.IChannel;
@@ -51,6 +52,7 @@ public class LocationActivity extends AppCompatActivity {
                 Map<String, Object> payload = new HashMap<String, Object>();
                 payload.put(CONTENT, url);
                 channel.fling(payload);
+                Toast.makeText(getBaseContext(), "Fling Completed!", Toast.LENGTH_LONG).show();
             }
 
         });

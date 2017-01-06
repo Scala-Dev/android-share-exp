@@ -60,6 +60,7 @@ public class OptionsActivity extends AppCompatActivity {
                         Map<String, Object> payload = new HashMap<String, Object>();
                         payload.put(CONTENT, url);
                         channel.fling(payload);
+                        Toast.makeText(getBaseContext(), "Fling Completed!", Toast.LENGTH_LONG).show();
                     } else {
                         //start location activity
                         Intent i = new Intent(getApplicationContext(), LocationActivity.class);
