@@ -30,7 +30,9 @@ import rx.Subscriber;
  */
 public class OrganizationActivity extends AppCompatActivity {
 
-    public static final String CONTENT = "content";
+    public static final String ORG = "org";
+    public static final String NAME = "name";
+    public static final String ORGANIZATIONS = "organizations";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     private ListView listView;
     private List<LinkedTreeMap> listLocation=new ArrayList<>();
@@ -56,13 +58,12 @@ public class OrganizationActivity extends AppCompatActivity {
                 int itemPosition     = position;
                 LinkedTreeMap itemValue    = (LinkedTreeMap) listView.getItemAtPosition(position);
                 HashMap map=new HashMap();
-                map.put("org",itemValue.get("name"));
+                map.put(ORG,itemValue.get(NAME));
                 Exp.getToken(map).then(new Subscriber<Auth>() {
                     @Override
                     public void onCompleted() {}
                     @Override
-                    public void onError(Throwable e) {}
-
+                    public void onError(Throwable e) {Log.e(LOG_TAG,"...GET TOKEN ERROR...",e);}
                     @Override
                     public void onNext(Auth auth) {
                         SharedPreferences.Editor edit = preferences.edit();
@@ -85,13 +86,11 @@ public class OrganizationActivity extends AppCompatActivity {
                     @Override
                     public void onCompleted() {}
                     @Override
-                    public void onError(Throwable e) {
-                        Log.e("error", e.toString());
-                    }
+                    public void onError(Throwable e) {Log.e(LOG_TAG, "...GET CURRENT USER ERROR...",e);}
                     @Override
                     public void onNext(User user) {
-                        Log.i("Response", user.toString());
-                        listLocation = (List<LinkedTreeMap>) user.get("organizations");
+                        Log.d(LOG_TAG, user.toString());
+                        listLocation = (List<LinkedTreeMap>) user.get(ORGANIZATIONS);
                         organizationAdapter.addAll(listLocation);
                         organizationAdapter.notifyDataSetChanged();
                     }

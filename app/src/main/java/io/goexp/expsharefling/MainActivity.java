@@ -14,7 +14,6 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.scala.exp.android.sdk.AppSingleton;
 import com.scala.exp.android.sdk.Exp;
 import com.scala.exp.android.sdk.Utils;
 import com.scala.exp.android.sdk.model.Auth;
@@ -34,11 +33,8 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXP_TOKEN = "exp_token";
     public static final String EXP_TOKEN_EXPIRATION = "exp_token_expiration";
     public static final String EXP_ORGANIZATION = "organization";
+    public static final String TEXT_PLAIN = "text/plain";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
-    private final static String organization = "Organization";
-    private final static String location = "Location";
-    private String org = "scala";
-    private String password = "5715031Com@";
     //    public static final String host = "https://api.goexp.io";
     public static final String host = "https://api-staging.goexp.io";
     private SharedPreferences preferences;
@@ -52,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         final String exp_token = preferences.getString(EXP_TOKEN, "");
         final String expiration = preferences.getString(EXP_TOKEN_EXPIRATION, "");
         final String organization = preferences.getString(EXP_ORGANIZATION, "");
+        Log.d(LOG_TAG, "...ONCREATE...");
         if (!exp_token.isEmpty() && !expiration.isEmpty() && !organization.isEmpty()) {
             //check if token expired
             Exp.getUser(host, exp_token).subscribe(new Subscriber<User>() {
@@ -70,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onCompleted() {}
                         @Override
-                        public void onError(Throwable e) {Log.e(LOG_TAG, "...SDK ERROR START...", e);}
+                        public void onError(Throwable e) {Log.e(LOG_TAG, "...SDK ERROR START WITH AUTH...", e);}
                         @Override
                         public void onNext(Boolean aBoolean) {
                             launchOptions();
@@ -82,37 +79,17 @@ public class MainActivity extends AppCompatActivity {
             showLogin();
         }
 
-        // Get intent, action and MIME type
+        // Get intent  url from other app
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
         if (Intent.ACTION_SEND.equals(action) && type != null) {
-            if ("text/plain".equals(type)) {
+            if (TEXT_PLAIN.equals(type)) {
                 handleSendText(intent);
             }
         }
 
-        // subscriber to handle the refresh token
-        Subscriber updateSubscriber = new Subscriber<Boolean>() {
-            @Override
-            public void onCompleted() {}
-            @Override
-            public void onError(Throwable e) {}
-            @Override
-            public void onNext(Boolean o) {
-                Auth auth = AppSingleton.getInstance().getAuth();
-                BigInteger expiration = auth.getExpiration();
-                String token = auth.getToken();
-                String organization = auth.getIdentity().getOrganization();
-                SharedPreferences.Editor edit = preferences.edit();
-                edit.putString(EXP_TOKEN, token);
-                edit.putString(EXP_TOKEN_EXPIRATION, expiration.toString());
-                edit.putString(EXP_ORGANIZATION,organization);
-                edit.commit();
-                Log.d(LOG_TAG, "REFRESH TOKEN");
-            }
-        };
-        Exp.on("update", updateSubscriber);
+
     }
 
     /**
@@ -176,7 +153,6 @@ public class MainActivity extends AppCompatActivity {
             startOptions.put(Utils.HOST, host);
             startOptions.put(Utils.USERNAME, user);
             startOptions.put(Utils.PASSWORD, pass);
-            startOptions.put(Utils.ORGANIZATION, org);
             startOptions.put(Utils.ENABLE_EVENTS, true);
             Exp.start(startOptions).subscribe(new Subscriber<Boolean>() {
                 @Override

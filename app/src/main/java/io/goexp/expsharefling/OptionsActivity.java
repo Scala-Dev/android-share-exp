@@ -14,14 +14,18 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.scala.exp.android.sdk.AppSingleton;
 import com.scala.exp.android.sdk.Exp;
 import com.scala.exp.android.sdk.channels.IChannel;
-import com.scala.exp.android.sdk.model.Location;
+import com.scala.exp.android.sdk.model.Auth;
 
-import java.util.ArrayList;
+import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import rx.Subscriber;
+
+import static io.goexp.expsharefling.MainActivity.EXP_PREF;
 
 /**
  * Created by Cesar Oyarzun on 1/4/17.
@@ -34,11 +38,13 @@ public class OptionsActivity extends AppCompatActivity {
     private final static String location = "Location";
     private String url;
     private ListView listView ;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final String org = getSharedPreferences(MainActivity.EXP_PREF, Context.MODE_PRIVATE).getString(MainActivity.EXP_ORGANIZATION, "");
+        preferences = getSharedPreferences(MainActivity.EXP_PREF, Context.MODE_PRIVATE);
+        final String org = preferences.getString(MainActivity.EXP_ORGANIZATION, "");
         String[] shareOptions = {organization+" ("+org+")",location};
         setContentView(R.layout.activity_main);
         this.url=this.getIntent().getStringExtra(MainActivity.URL);
@@ -70,6 +76,29 @@ public class OptionsActivity extends AppCompatActivity {
                 }
             }
         });
+
+        // subscriber to handle the refresh token
+        Subscriber updateSubscriber = new Subscriber<Boolean>() {
+            @Override
+            public void onCompleted() {}
+            @Override
+            public void onError(Throwable e) {Log.e(LOG_TAG,"...ERROR REFRESH TOKEN...",e);}
+            @Override
+            public void onNext(Boolean o) {
+                Auth auth = AppSingleton.getInstance().getAuth();
+                BigInteger expiration = auth.getExpiration();
+                String token = auth.getToken();
+                String organization = auth.getIdentity().getOrganization();
+                SharedPreferences.Editor edit = preferences.edit();
+                edit.putString(MainActivity.EXP_TOKEN, token);
+                edit.putString(MainActivity.EXP_TOKEN_EXPIRATION, expiration.toString());
+                edit.putString(MainActivity.EXP_ORGANIZATION,organization);
+                edit.commit();
+                Log.d(LOG_TAG, "...REFRESH TOKEN...");
+                restartSDK(auth);
+            }
+        };
+        Exp.on("update", updateSubscriber);
     }
 
     @Override
@@ -82,7 +111,7 @@ public class OptionsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if(id == R.id.logout){
-            SharedPreferences.Editor edit = getSharedPreferences(MainActivity.EXP_PREF,Context.MODE_PRIVATE).edit();
+            SharedPreferences.Editor edit = getSharedPreferences(EXP_PREF,Context.MODE_PRIVATE).edit();
             edit.putString(MainActivity.EXP_TOKEN,"");
             edit.putString(MainActivity.EXP_TOKEN_EXPIRATION,"");
             edit.putString(MainActivity.EXP_ORGANIZATION,"");
@@ -97,5 +126,19 @@ public class OptionsActivity extends AppCompatActivity {
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void restartSDK(Auth auth){
+        //start with last auth
+        Exp.start(auth.getApi().getHost(), auth).subscribe(new Subscriber<Boolean>() {
+            @Override
+            public void onCompleted() {}
+            @Override
+            public void onError(Throwable e) {Log.e(LOG_TAG, "...SDK RESTART ERROR...", e);}
+            @Override
+            public void onNext(Boolean aBoolean) {
+                Log.d(LOG_TAG,"...SDK RESTARTED...");
+            }
+        });
     }
 }
