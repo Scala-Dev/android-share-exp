@@ -4,4 +4,6 @@
 
     <item android:title="Logout"
         android:id="@+id/logout" />
+    <item android:title="Organizations"
+        android:id="@+id/organizations" />
 </menu>

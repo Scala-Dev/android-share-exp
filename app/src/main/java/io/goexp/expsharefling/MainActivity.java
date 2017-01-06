@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -53,23 +54,18 @@ public class MainActivity extends AppCompatActivity {
         final String organization = preferences.getString(EXP_ORGANIZATION, "");
         if (!exp_token.isEmpty() && !expiration.isEmpty() && !organization.isEmpty()) {
             //check if token expired
-            Exp.getCurrentUser(host, exp_token).subscribe(new Subscriber<User>() {
+            Exp.getUser(host, exp_token).subscribe(new Subscriber<User>() {
                 @Override
                 public void onCompleted() {}
                 @Override
                 public void onError(Throwable e) {
-                    Log.e(LOG_TAG, "...SDK TOKEN INVALID...", e);
+                    Log.d(LOG_TAG, "...SDK TOKEN INVALID...", e);
                     showLogin();
                 }
                 @Override
                 public void onNext(User user) {
-                    //if token valid load
-                    Identity ident = new Identity();
-                    ident.setOrganization(organization);
-                    Auth auth = new Auth();
-                    auth.setToken(exp_token);
-                    auth.setIdentity(ident);
-                    auth.setExpiration(BigInteger.valueOf(Long.parseLong(expiration)));
+                    //start with last auth
+                    Auth auth = createAuth(organization, exp_token, expiration);
                     Exp.start(host, auth).subscribe(new Subscriber<Boolean>() {
                         @Override
                         public void onCompleted() {}
@@ -77,9 +73,7 @@ public class MainActivity extends AppCompatActivity {
                         public void onError(Throwable e) {Log.e(LOG_TAG, "...SDK ERROR START...", e);}
                         @Override
                         public void onNext(Boolean aBoolean) {
-                            Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
-                            intent.putExtra(URL,url);
-                            startActivity(intent);
+                            launchOptions();
                         }
                     });
                 }
@@ -92,12 +86,13 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         String action = intent.getAction();
         String type = intent.getType();
-
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             if ("text/plain".equals(type)) {
-                handleSendText(intent); // Handle text being sent
+                handleSendText(intent);
             }
         }
+
+        // subscriber to handle the refresh token
         Subscriber updateSubscriber = new Subscriber<Boolean>() {
             @Override
             public void onCompleted() {}
@@ -120,7 +115,37 @@ public class MainActivity extends AppCompatActivity {
         Exp.on("update", updateSubscriber);
     }
 
+    /**
+     * Launch Option activity
+     */
+    private void launchOptions() {
+        Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(URL,url);
+        startActivity(intent);
+    }
 
+    /**
+     * Create Auth object from share preferences
+     * @param organization
+     * @param exp_token
+     * @param expiration
+     * @return
+     */
+    @NonNull
+    private Auth createAuth(String organization, String exp_token, String expiration) {
+        Identity ident = new Identity();
+        ident.setOrganization(organization);
+        Auth auth = new Auth();
+        auth.setToken(exp_token);
+        auth.setIdentity(ident);
+        auth.setExpiration(BigInteger.valueOf(Long.parseLong(expiration)));
+        return auth;
+    }
+
+    /**
+     * Show login page
+     */
     private void showLogin() {
         setContentView(R.layout.login);
         final TextView userText = (TextView) findViewById(R.id.textUsername);
@@ -134,11 +159,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Login into exp
+     * @param userText
+     * @param passText
+     */
     private void login(TextView userText, TextView passText) {
         final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
         progressDialog.setMessage("Loading.....");
         progressDialog.show();
-
         final String user = userText.getText().toString();
         String pass = passText.getText().toString();
         if (!user.isEmpty() && !pass.isEmpty()) {
@@ -170,9 +199,7 @@ public class MainActivity extends AppCompatActivity {
                     edit.putString(EXP_TOKEN_EXPIRATION, Exp.getAuth().getExpiration().toString());
                     edit.putString(EXP_ORGANIZATION,Exp.getAuth().getIdentity().getOrganization());
                     edit.commit();
-                    Intent intent = new Intent(getApplicationContext(), OptionsActivity.class);
-                    intent.putExtra(URL,url);
-                    startActivity(intent);
+                    launchOptions();
                     progressDialog.dismiss();
                 }
             });
@@ -182,10 +209,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Handel the url send to the app
+     * @param intent
+     */
     private void handleSendText(Intent intent) {
         String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
         if (sharedText != null) {
-            // Update UI to reflect text being shared
             this.url = sharedText;
         }
     }
