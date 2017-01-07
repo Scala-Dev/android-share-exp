@@ -153,6 +153,7 @@ public class MainActivity extends AppCompatActivity {
             startOptions.put(Utils.HOST, host);
             startOptions.put(Utils.USERNAME, user);
             startOptions.put(Utils.PASSWORD, pass);
+            startOptions.put(Utils.ORGANIZATION, "");
             startOptions.put(Utils.ENABLE_EVENTS, true);
             Exp.start(startOptions).subscribe(new Subscriber<Boolean>() {
                 @Override
