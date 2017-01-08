@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPersonName"
-        android:text="cesar.oyarzun@scala.com"
+        android:text=""
         android:ems="10"
         android:id="@+id/textUsername"
         android:hint="User:"
@@ -29,7 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textPassword"
-        android:text="5715031Com@"
+        android:text=""
 
         android:ems="10"
         android:id="@+id/textPassword"
