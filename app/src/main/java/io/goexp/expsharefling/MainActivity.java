@@ -34,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String EXP_TOKEN_EXPIRATION = "exp_token_expiration";
     public static final String EXP_ORGANIZATION = "organization";
     public static final String TEXT_PLAIN = "text/plain";
+    public static final String USERNAME = "username";
     private final String LOG_TAG = MainActivity.class.getSimpleName();
     //    public static final String host = "https://api.goexp.io";
     public static final String host = "https://api-staging.goexp.io";
@@ -136,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.login);
         final TextView userText = (TextView) findViewById(R.id.textUsername);
         final TextView passText = (TextView) findViewById(R.id.textPassword);
+        String userName = preferences.getString(USERNAME, "");
+        userText.setText(userName);
         Button button = (Button) findViewById(R.id.buttonLogin);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -153,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
     private void login(TextView userText, TextView passText) {
         progressDialog.show();
         final String user = userText.getText().toString();
-        String pass = passText.getText().toString();
+        final String pass = passText.getText().toString();
         if (!user.isEmpty() && !pass.isEmpty()) {
             final Map<String, Object> startOptions = new HashMap<>();
             startOptions.put(Utils.HOST, host);
@@ -161,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
             startOptions.put(Utils.PASSWORD, pass);
             startOptions.put(Utils.ORGANIZATION, "");
             startOptions.put(Utils.ENABLE_EVENTS, true);
+
             Exp.start(startOptions).subscribe(new Subscriber<Boolean>() {
                 @Override
                 public void onCompleted() {
@@ -182,6 +186,7 @@ public class MainActivity extends AppCompatActivity {
                     edit.putString(EXP_TOKEN, Exp.getAuth().getToken());
                     edit.putString(EXP_TOKEN_EXPIRATION, Exp.getAuth().getExpiration().toString());
                     edit.putString(EXP_ORGANIZATION,Exp.getAuth().getIdentity().getOrganization());
+                    edit.putString(USERNAME,user);
                     edit.commit();
                     launchOptions();
                     progressDialog.dismiss();
