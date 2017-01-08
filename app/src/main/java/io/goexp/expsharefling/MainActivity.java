@@ -39,11 +39,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String host = "https://api-staging.goexp.io";
     private SharedPreferences preferences;
     private String url;
+    private ProgressDialog progressDialog;
 
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        createProgressDialog();
         preferences = getSharedPreferences(EXP_PREF, Context.MODE_PRIVATE);
         final String exp_token = preferences.getString(EXP_TOKEN, "");
         final String expiration = preferences.getString(EXP_TOKEN_EXPIRATION, "");
@@ -51,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(LOG_TAG, "...ONCREATE...");
         if (!exp_token.isEmpty() && !expiration.isEmpty() && !organization.isEmpty()) {
             //check if token expired
+            this.progressDialog.show();
             Exp.getUser(host, exp_token).subscribe(new Subscriber<User>() {
                 @Override
                 public void onCompleted() {}
@@ -58,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
                 public void onError(Throwable e) {
                     Log.d(LOG_TAG, "...SDK TOKEN INVALID...", e);
                     showLogin();
+                    progressDialog.dismiss();
                 }
                 @Override
                 public void onNext(User user) {
@@ -67,9 +71,13 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onCompleted() {}
                         @Override
-                        public void onError(Throwable e) {Log.e(LOG_TAG, "...SDK ERROR START WITH AUTH...", e);}
+                        public void onError(Throwable e) {
+                            progressDialog.dismiss();
+                            Log.e(LOG_TAG, "...SDK ERROR START WITH AUTH...", e);
+                        }
                         @Override
                         public void onNext(Boolean aBoolean) {
+                            progressDialog.dismiss();
                             launchOptions();
                         }
                     });
@@ -143,8 +151,6 @@ public class MainActivity extends AppCompatActivity {
      * @param passText
      */
     private void login(TextView userText, TextView passText) {
-        final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this);
-        progressDialog.setMessage("Loading.....");
         progressDialog.show();
         final String user = userText.getText().toString();
         String pass = passText.getText().toString();
@@ -186,6 +192,17 @@ public class MainActivity extends AppCompatActivity {
             progressDialog.dismiss();
         }
     }
+
+    @NonNull
+    private ProgressDialog createProgressDialog() {
+        if(progressDialog == null){
+            progressDialog = new ProgressDialog(MainActivity.this);
+        }
+        progressDialog.setMessage("Loading.....");
+        return progressDialog;
+    }
+
+
 
     /**
      * Handel the url send to the app
