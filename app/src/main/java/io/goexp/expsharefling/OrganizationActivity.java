@@ -33,7 +33,7 @@ public class OrganizationActivity extends AppCompatActivity {
     public static final String ORG = "org";
     public static final String NAME = "name";
     public static final String ORGANIZATIONS = "organizations";
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private final String LOG_TAG = OrganizationActivity.class.getSimpleName();
     private ListView listView;
     private List<LinkedTreeMap> listLocation=new ArrayList<>();
     private String url;

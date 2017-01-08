@@ -33,7 +33,7 @@ import static io.goexp.expsharefling.MainActivity.EXP_PREF;
 public class OptionsActivity extends AppCompatActivity {
 
     public static final String CONTENT = "content";
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private final String LOG_TAG = OptionsActivity.class.getSimpleName();
     private final static String organization = "Organization";
     private final static String location = "Location";
     private String url;

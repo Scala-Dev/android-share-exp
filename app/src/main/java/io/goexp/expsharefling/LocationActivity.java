@@ -26,7 +26,7 @@ import rx.Subscriber;
 public class LocationActivity extends AppCompatActivity {
 
     public static final String CONTENT = "content";
-    private final String LOG_TAG = MainActivity.class.getSimpleName();
+    private final String LOG_TAG = LocationActivity.class.getSimpleName();
     private ListView listView;
     private List<Location> listLocation=new ArrayList<>();
     private String url;
