@@ -45,6 +45,7 @@ public class OrganizationActivity extends AppCompatActivity {
         this.url = this.getIntent().getStringExtra(MainActivity.URL);
         setContentView(R.layout.organization_layout);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Organizations");
         preferences = getSharedPreferences(MainActivity.EXP_PREF, Context.MODE_PRIVATE);
 
         // Get ListView object from xml

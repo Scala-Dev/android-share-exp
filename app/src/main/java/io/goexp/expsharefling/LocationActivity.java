@@ -37,6 +37,7 @@ public class LocationActivity extends AppCompatActivity {
         this.url = this.getIntent().getStringExtra(MainActivity.URL);
         setContentView(R.layout.location_layout);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle("Locations");
 
         // Get ListView object from xml
         listView = (ListView) findViewById(R.id.list_location);

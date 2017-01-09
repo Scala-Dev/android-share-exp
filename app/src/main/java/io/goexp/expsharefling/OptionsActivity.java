@@ -57,7 +57,7 @@ public class OptionsActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 int itemPosition     = position;
                 String  itemValue    = (String) listView.getItemAtPosition(position);
-                if(url.isEmpty()){
+                if(url == null || url.isEmpty()){
                     Toast.makeText(getBaseContext(), "You need to select an URL to share!", Toast.LENGTH_LONG).show();
                 }else {
                     if (itemPosition == 0) {
